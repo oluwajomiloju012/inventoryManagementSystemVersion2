@@ -10,7 +10,7 @@ const upload = require('../middleware/cloudinary.js');
 
 productRouter.use(protect);
 
-// ! No authentication here (as required)
+
 //productRouter.post('/',  createProduct);
 productRouter.get('/',getProducts);
 productRouter.get('/:id', getProduct);
