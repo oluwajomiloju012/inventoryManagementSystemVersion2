@@ -6,32 +6,38 @@ const sendEmail = require("../middleware/emailsender.js");
 
 const createProductwithEmail = async (req, res) => {
   try {
-    const { product, price } = req.body;
+    const { product, price, quantity } = req.body;
 
-    const productemail = new Product({ product, price });
+    const productemail = new Product({ product, price, quantity });
     await productemail.save();
 
     // 🔥 Get all admins
     const admins = await User.find({ role: "admin" });
     const adminEmails = admins.map(a => a.email);
 
-    // 📧 Send email
-    const subject = "New Product Created";
-    const message = `
-      <h3>New Product Alert 🚀</h3>
-      <p>A new product has been created:</p>
-      <ul>
-        <li><strong>Name:</strong> ${productemail.product}</li>
-        <li><strong>Price:</strong> ${productemail.price}</li>
-      </ul>
-    `;
-
+    // 📧 Send email — isolated so a failure here doesn't affect the response
     if (adminEmails.length > 0) {
-      await sendEmail(adminEmails, subject, message);
+      const subject = "New Product Created";
+      const message = `
+        <h3>New Product Alert </h3>
+        <p>A new product has been created:</p>
+        <ul>
+          <li><strong>Name:</strong> ${productemail.product}</li>
+          <li><strong>Price:</strong> ${productemail.price}</li>
+          <li><strong>Quantity:</strong> ${productemail.quantity}</li>
+        </ul>
+      `;
+
+      try {
+        await sendEmail(adminEmails, subject, message);
+      } catch (emailError) {
+        console.error("Failed to send admin notification email:", emailError.message);
+        // don't throw — product was already saved successfully
+      }
     }
 
     return res.status(201).json({
-      message: "Product created and admins notified",
+      message: "Product created successfully",
       productemail,
     });
   } catch (error) {

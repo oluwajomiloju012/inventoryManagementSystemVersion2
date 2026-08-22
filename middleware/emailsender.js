@@ -1,3 +1,6 @@
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
+
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
@@ -7,8 +10,7 @@ const transporter = nodemailer.createTransport({
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-    },
-    family: 4  // force IPv4
+    }
 });
 
 const sendEmail = async (to, subject, html) => {
